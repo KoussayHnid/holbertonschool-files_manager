@@ -1,19 +1,33 @@
-import dbClient from '../utils/db.js';
-import redisClient from '../utils/redis.js';
+const dbClient = require('../utils/db');
 
-export default class AppController {
-  static getStatus = async (req, res) => {
-    return res
-      .status(200)
-      .json({ redis: redisClient.isAlive(), db: dbClient.isAlive() }); 
-  };
+const AppController = {
+  getStatus: async (req, res) => {
+    try {
+      const isDBAlive = dbClient.isAlive();
+      const isRedisAlive = true;
 
-  static getStats = async (req, res) => {
-    res
-      .status(200)
-      .json({
-        users: await dbClient.nbUsers(),
-        files: await dbClient.nbFiles(),
-      });
-  };
-}
+      if (isDBAlive && isRedisAlive) {
+        res.status(200).json({ redis: true, db: true });
+      } else {
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+
+  getStats: async (req, res) => {
+    try {
+      const usersCount = await dbClient.nbUsers();
+      const filesCount = await dbClient.nbFiles();
+
+      res.status(200).json({ users: usersCount, files: filesCount });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+};
+
+module.exports = AppController;
