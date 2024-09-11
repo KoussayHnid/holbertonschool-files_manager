@@ -1,11 +1,10 @@
-import Redis from 'redis';
+const redis = require('redis');
 
 class RedisClient {
   constructor() {
-    this.client = Redis.createClient();
-
-    this.client.on('error', (err) => {
-      console.error('Redis client error:', err);
+    this.client = redis.createClient();
+    this.client.on('error', (error) => {
+      console.error('Redis error:', error);
     });
   }
 
@@ -15,11 +14,11 @@ class RedisClient {
 
   async get(key) {
     return new Promise((resolve, reject) => {
-      this.client.get(key, (err, result) => {
-        if (err) {
-          reject(err);
+      this.client.get(key, (error, value) => {
+        if (error) {
+          reject(error);
         } else {
-          resolve(result);
+          resolve(value);
         }
       });
     });
@@ -27,9 +26,10 @@ class RedisClient {
 
   async set(key, value, duration) {
     return new Promise((resolve, reject) => {
-      this.client.setex(key, duration, value, (err, result) => {
-        if (err) {
-          reject(err);
+      // Store the value in Redis with an expiration set by the duration argument
+      this.client.setex(key, duration, value, (error, result) => {
+        if (error) {
+          reject(error);
         } else {
           resolve(result);
         }
@@ -39,9 +39,10 @@ class RedisClient {
 
   async del(key) {
     return new Promise((resolve, reject) => {
-      this.client.del(key, (err, result) => {
-        if (err) {
-          reject(err);
+      // Remove the value for the given key from Redis
+      this.client.del(key, (error, result) => {
+        if (error) {
+          reject(error);
         } else {
           resolve(result);
         }
@@ -51,4 +52,4 @@ class RedisClient {
 }
 
 const redisClient = new RedisClient();
-export default redisClient;
+module.exports = redisClient;
